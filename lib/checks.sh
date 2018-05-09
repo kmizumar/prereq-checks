@@ -46,13 +46,13 @@ function check_java() {
         '/usr/lib/jvm/jre-openjdk'
     )
     local JAVA_HOME_CANDIDATES=(
-        ${JAVA7_HOME_CANDIDATES[@]}
-        ${JAVA8_HOME_CANDIDATES[@]}
-        ${JAVA6_HOME_CANDIDATES[@]}
-        ${MISCJAVA_HOME_CANDIDATES[@]}
-        ${OPENJAVA7_HOME_CANDIDATES[@]}
-        ${OPENJAVA8_HOME_CANDIDATES[@]}
-        ${OPENJAVA6_HOME_CANDIDATES[@]}
+        "${JAVA7_HOME_CANDIDATES[@]}"
+        "${JAVA8_HOME_CANDIDATES[@]}"
+        "${JAVA6_HOME_CANDIDATES[@]}"
+        "${MISCJAVA_HOME_CANDIDATES[@]}"
+        "${OPENJAVA7_HOME_CANDIDATES[@]}"
+        "${OPENJAVA8_HOME_CANDIDATES[@]}"
+        "${OPENJAVA6_HOME_CANDIDATES[@]}"
     )
 
     # Find and verify Java
@@ -140,7 +140,7 @@ function check_os() (
         file=$(find /sys/kernel/mm/ -type d -name '*transparent_hugepage')/defrag
         if [ -f "$file" ]; then
             local msg="System: $file should be disabled"
-            if fgrep -q "[never]" "$file"; then
+            if grep -fq "[never]" "$file"; then
                 state "$msg" 0
             else
                 state "$msg. Actual: $(awk '{print $1}' "$file" | sed -e 's/\[//' -e 's/\]//')" 1
@@ -190,7 +190,7 @@ function check_os() (
         local packages_32bit
         packages_32bit=$(rpm -qa --queryformat '\t%{NAME} %{ARCH}\n' | grep 'i[6543]86' | cut -d' ' -f1)
         if [ "$packages_32bit" ]; then
-            state "System: Found the following 32bit packages installed:\n$packages_32bit" 1
+            state "System: Found the following 32bit packages installed:\\n$packages_32bit" 1
         else
             state "System: Only 64bit packages should be installed" 0
         fi

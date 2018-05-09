@@ -6,7 +6,7 @@ declare -A SERVICE_STATE
 SYSINFO_TITLE_WIDTH=14
 
 function print_label() {
-    printf "%-${SYSINFO_TITLE_WIDTH}s %s\n" "$1:" "$2"
+    printf "%-${SYSINFO_TITLE_WIDTH}s %s\\n" "$1:" "$2"
 }
 
 function print_header() {
@@ -24,11 +24,11 @@ function state() {
     local msg=$1
     local flag=$2
     if [ "$flag" -eq 0 ]; then
-        echo -e "\e[92m PASS \033[0m $msg"
+        echo -e "\\e[92m PASS \\033[0m $msg"
     elif [ "$flag" -eq 2 ]; then
-        echo -e "\e[93m WARN \033[0m $msg"
+        echo -e "\\e[93m WARN \\033[0m $msg"
     else
-        echo -e "\e[91m FAIL \033[0m $msg"
+        echo -e "\\e[91m FAIL \\033[0m $msg"
     fi
 }
 

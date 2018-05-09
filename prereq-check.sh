@@ -33,7 +33,7 @@ set -u
 VER=1.4.4
 
 if [ "$(uname)" = 'Darwin' ]; then
-    echo -e "\nThis tool runs on Linux only, not Mac OS."
+    echo -e "\\nThis tool runs on Linux only, not macOS."
     exit 1
 fi
 
@@ -575,11 +575,11 @@ function check_addc() {
             SITEN=$(grep --text "Server Site Name:" "${WORK_DIR}/dc.tmp" | awk '{print $NF}')
             dig "@${DC}" -t SRV "_ldap._tcp.${SITEN}._sites.dc._msdcs.${DOMAIN}" > "${WORK_DIR}/dig2.tmp"
 
-            echo -e "AD Domain\t\t\t: ${DOMAIN}"
-            echo -e "Authoritative Domain Controller\t: ${DC}"
-            echo -e "Site Name\t\t\t: ${SITEN}"
+            echo -e "AD Domain\\t\\t\\t: ${DOMAIN}"
+            echo -e "Authoritative Domain Controller\\t: ${DC}"
+            echo -e "Site Name\\t\\t\\t: ${SITEN}"
             echo -e "-----------------------------------------------------------------------------"
-            echo -e "# _service._proto.name.\t\tTTL\tclass\tSRV\tpriority\tweight\tport\ttarget."
+            echo -e "# _service._proto.name.\\t\\tTTL\\tclass\\tSRV\\tpriority\\tweight\\tport\\ttarget."
             grep -A 100 "ANSWER SECTION" "${WORK_DIR}/dig2.tmp" | grep -B 100 "Query time" | sed '1d' | sed '$d'
         fi
     else
@@ -628,7 +628,7 @@ EOFILE
     elif [ $SRCH_RESULT -eq 34 ]; then
         state "Invalid DN syntax (34)" 1
     else
-        state -e "Unrecognized error occured. Not able to connect to AD using\n\tLDAPURI: ${ARG_LDAPURI}\n\tBINDDN: ${ARG_BINDDN}\n\tSEARCHBASE: ${ARG_SEARCHBASE}\n\tand provided password" 1
+        state -e "Unrecognized error occured. Not able to connect to AD using\\n\\tLDAPURI: ${ARG_LDAPURI}\\n\\tBINDDN: ${ARG_BINDDN}\\n\\tSEARCHBASE: ${ARG_SEARCHBASE}\\n\\tand provided password" 1
     fi
 }
 
@@ -681,13 +681,13 @@ function check_java() {
         '/usr/lib/jvm/jre-openjdk'
     )
     local JAVA_HOME_CANDIDATES=(
-        ${JAVA7_HOME_CANDIDATES[@]}
-        ${JAVA8_HOME_CANDIDATES[@]}
-        ${JAVA6_HOME_CANDIDATES[@]}
-        ${MISCJAVA_HOME_CANDIDATES[@]}
-        ${OPENJAVA7_HOME_CANDIDATES[@]}
-        ${OPENJAVA8_HOME_CANDIDATES[@]}
-        ${OPENJAVA6_HOME_CANDIDATES[@]}
+        "${JAVA7_HOME_CANDIDATES[@]}"
+        "${JAVA8_HOME_CANDIDATES[@]}"
+        "${JAVA6_HOME_CANDIDATES[@]}"
+        "${MISCJAVA_HOME_CANDIDATES[@]}"
+        "${OPENJAVA7_HOME_CANDIDATES[@]}"
+        "${OPENJAVA8_HOME_CANDIDATES[@]}"
+        "${OPENJAVA6_HOME_CANDIDATES[@]}"
     )
 
     # Find and verify Java
@@ -775,7 +775,7 @@ function check_os() (
         file=$(find /sys/kernel/mm/ -type d -name '*transparent_hugepage')/defrag
         if [ -f "$file" ]; then
             local msg="System: $file should be disabled"
-            if fgrep -q "[never]" "$file"; then
+            if grep -fq "[never]" "$file"; then
                 state "$msg" 0
             else
                 state "$msg. Actual: $(awk '{print $1}' "$file" | sed -e 's/\[//' -e 's/\]//')" 1
@@ -825,7 +825,7 @@ function check_os() (
         local packages_32bit
         packages_32bit=$(rpm -qa --queryformat '\t%{NAME} %{ARCH}\n' | grep 'i[6543]86' | cut -d' ' -f1)
         if [ "$packages_32bit" ]; then
-            state "System: Found the following 32bit packages installed:\n$packages_32bit" 1
+            state "System: Found the following 32bit packages installed:\\n$packages_32bit" 1
         else
             state "System: Only 64bit packages should be installed" 0
         fi
@@ -1144,35 +1144,35 @@ function print_disks() (
                 'xfs')
                     local resblks
                     resblks=$(xfs_io -xc resblks "$target" | awk '/^reserved blocks =/ { print $4 }')
-                    echo -en "\e[92m$fstype\033[0m, "
+                    echo -en "\\e[92m$fstype\\033[0m, "
                     if [[ $resblks -eq 0 ]]; then
-                        echo -en "\e[92mNo\033[0m reserved blocks, "
+                        echo -en "\\e[92mNo\\033[0m reserved blocks, "
                     else
-                        echo -en "\e[93m$resblks\033[0m blocks reserved, "
+                        echo -en "\\e[93m$resblks\\033[0m blocks reserved, "
                     fi
                     if ${NOATIME}; then
-                        echo -e "\e[92mnoatime\033[0m option specified|"
+                        echo -e "\\e[92mnoatime\\033[0m option specified|"
                     else
-                        echo -e "without \e[93mnoatime\033[0m option|"
+                        echo -e "without \\e[93mnoatime\\033[0m option|"
                     fi
                     ;;
                 'ext3'|'ext4')
                     local resblks
                     resblks=$(tune2fs -l "$source" | awk '/^Reserved block count:/ { print $4 }')
-                    echo -en "\e[92m$fstype\033[0m, "
+                    echo -en "\\e[92m$fstype\\033[0m, "
                     if [[ $resblks -eq 0 ]]; then
-                        echo -en "\e[92mNo\033[0m reserved blocks, "
+                        echo -en "\\e[92mNo\\033[0m reserved blocks, "
                     else
-                        echo -en "\e[93m$resblks\033[0m blocks reserved, "
+                        echo -en "\\e[93m$resblks\\033[0m blocks reserved, "
                     fi
                     if ${NOATIME}; then
-                        echo -e "\e[92mnoatime\033[0m option specified|"
+                        echo -e "\\e[92mnoatime\\033[0m option specified|"
                     else
-                        echo -e "without \e[93mnoatime\033[0m option|"
+                        echo -e "without \\e[93mnoatime\\033[0m option|"
                     fi
                     ;;
                 *)
-                    echo -e "\e[91m$fstype\033[0m is not recommended for a data mount|"
+                    echo -e "\\e[91m$fstype\\033[0m is not recommended for a data mount|"
                     ;;
             esac
         done
@@ -1212,7 +1212,7 @@ function print_free_space() (
         local free
         free=$(df -Ph "$path" | tail -1 | awk '{print $4}')
         pad
-        printf "%-9s %s\n" "$path" "$free"
+        printf "%-9s %s\\n" "$path" "$free"
     }
     echo "Free space:"
     free_space /opt
@@ -1230,7 +1230,7 @@ function print_cloudera_rpms() {
             pkg=$(echo "$line" | cut -d'-' -f1-3)
             ver=$(echo "$line" | cut -d'-' -f4-)
             pad
-            printf "%-24s  %s\n" "$pkg" "$ver"
+            printf "%-24s  %s\\n" "$pkg" "$ver"
         done
     else
         echo "Cloudera RPMs: None installed"
@@ -1272,7 +1272,7 @@ declare -A SERVICE_STATE
 SYSINFO_TITLE_WIDTH=14
 
 function print_label() {
-    printf "%-${SYSINFO_TITLE_WIDTH}s %s\n" "$1:" "$2"
+    printf "%-${SYSINFO_TITLE_WIDTH}s %s\\n" "$1:" "$2"
 }
 
 function print_header() {
@@ -1290,11 +1290,11 @@ function state() {
     local msg=$1
     local flag=$2
     if [ "$flag" -eq 0 ]; then
-        echo -e "\e[92m PASS \033[0m $msg"
+        echo -e "\\e[92m PASS \\033[0m $msg"
     elif [ "$flag" -eq 2 ]; then
-        echo -e "\e[93m WARN \033[0m $msg"
+        echo -e "\\e[93m WARN \\033[0m $msg"
     else
-        echo -e "\e[91m FAIL \033[0m $msg"
+        echo -e "\\e[91m FAIL \\033[0m $msg"
     fi
 }
 

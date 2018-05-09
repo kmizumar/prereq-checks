@@ -46,35 +46,35 @@ function print_disks() (
                 'xfs')
                     local resblks
                     resblks=$(xfs_io -xc resblks "$target" | awk '/^reserved blocks =/ { print $4 }')
-                    echo -en "\e[92m$fstype\033[0m, "
+                    echo -en "\\e[92m$fstype\\033[0m, "
                     if [[ $resblks -eq 0 ]]; then
-                        echo -en "\e[92mNo\033[0m reserved blocks, "
+                        echo -en "\\e[92mNo\\033[0m reserved blocks, "
                     else
-                        echo -en "\e[93m$resblks\033[0m blocks reserved, "
+                        echo -en "\\e[93m$resblks\\033[0m blocks reserved, "
                     fi
                     if ${NOATIME}; then
-                        echo -e "\e[92mnoatime\033[0m option specified|"
+                        echo -e "\\e[92mnoatime\\033[0m option specified|"
                     else
-                        echo -e "without \e[93mnoatime\033[0m option|"
+                        echo -e "without \\e[93mnoatime\\033[0m option|"
                     fi
                     ;;
                 'ext3'|'ext4')
                     local resblks
                     resblks=$(tune2fs -l "$source" | awk '/^Reserved block count:/ { print $4 }')
-                    echo -en "\e[92m$fstype\033[0m, "
+                    echo -en "\\e[92m$fstype\\033[0m, "
                     if [[ $resblks -eq 0 ]]; then
-                        echo -en "\e[92mNo\033[0m reserved blocks, "
+                        echo -en "\\e[92mNo\\033[0m reserved blocks, "
                     else
-                        echo -en "\e[93m$resblks\033[0m blocks reserved, "
+                        echo -en "\\e[93m$resblks\\033[0m blocks reserved, "
                     fi
                     if ${NOATIME}; then
-                        echo -e "\e[92mnoatime\033[0m option specified|"
+                        echo -e "\\e[92mnoatime\\033[0m option specified|"
                     else
-                        echo -e "without \e[93mnoatime\033[0m option|"
+                        echo -e "without \\e[93mnoatime\\033[0m option|"
                     fi
                     ;;
                 *)
-                    echo -e "\e[91m$fstype\033[0m is not recommended for a data mount|"
+                    echo -e "\\e[91m$fstype\\033[0m is not recommended for a data mount|"
                     ;;
             esac
         done
@@ -114,7 +114,7 @@ function print_free_space() (
         local free
         free=$(df -Ph "$path" | tail -1 | awk '{print $4}')
         pad
-        printf "%-9s %s\n" "$path" "$free"
+        printf "%-9s %s\\n" "$path" "$free"
     }
     echo "Free space:"
     free_space /opt
@@ -132,7 +132,7 @@ function print_cloudera_rpms() {
             pkg=$(echo "$line" | cut -d'-' -f1-3)
             ver=$(echo "$line" | cut -d'-' -f4-)
             pad
-            printf "%-24s  %s\n" "$pkg" "$ver"
+            printf "%-24s  %s\\n" "$pkg" "$ver"
         done
     else
         echo "Cloudera RPMs: None installed"

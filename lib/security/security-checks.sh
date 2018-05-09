@@ -30,11 +30,11 @@ function check_addc() {
             SITEN=$(grep --text "Server Site Name:" "${WORK_DIR}/dc.tmp" | awk '{print $NF}')
             dig "@${DC}" -t SRV "_ldap._tcp.${SITEN}._sites.dc._msdcs.${DOMAIN}" > "${WORK_DIR}/dig2.tmp"
 
-            echo -e "AD Domain\t\t\t: ${DOMAIN}"
-            echo -e "Authoritative Domain Controller\t: ${DC}"
-            echo -e "Site Name\t\t\t: ${SITEN}"
+            echo -e "AD Domain\\t\\t\\t: ${DOMAIN}"
+            echo -e "Authoritative Domain Controller\\t: ${DC}"
+            echo -e "Site Name\\t\\t\\t: ${SITEN}"
             echo -e "-----------------------------------------------------------------------------"
-            echo -e "# _service._proto.name.\t\tTTL\tclass\tSRV\tpriority\tweight\tport\ttarget."
+            echo -e "# _service._proto.name.\\t\\tTTL\\tclass\\tSRV\\tpriority\\tweight\\tport\\ttarget."
             grep -A 100 "ANSWER SECTION" "${WORK_DIR}/dig2.tmp" | grep -B 100 "Query time" | sed '1d' | sed '$d'
         fi
     else
@@ -83,6 +83,6 @@ EOFILE
     elif [ $SRCH_RESULT -eq 34 ]; then
         state "Invalid DN syntax (34)" 1
     else
-        state -e "Unrecognized error occured. Not able to connect to AD using\n\tLDAPURI: ${ARG_LDAPURI}\n\tBINDDN: ${ARG_BINDDN}\n\tSEARCHBASE: ${ARG_SEARCHBASE}\n\tand provided password" 1
+        state -e "Unrecognized error occured. Not able to connect to AD using\\n\\tLDAPURI: ${ARG_LDAPURI}\\n\\tBINDDN: ${ARG_BINDDN}\\n\\tSEARCHBASE: ${ARG_SEARCHBASE}\\n\\tand provided password" 1
     fi
 }

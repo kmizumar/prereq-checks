@@ -33,7 +33,7 @@ set -u
 VER=1.4.4
 
 if [ "$(uname)" = 'Darwin' ]; then
-    echo -e "\nThis tool runs on Linux only, not Mac OS."
+    echo -e "\\nThis tool runs on Linux only, not macOS."
     exit 1
 fi
 
