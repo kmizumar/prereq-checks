@@ -1,0 +1,14 @@
+FROM centos:6.9
+
+RUN useradd -s /bin/bash -u 4096 -U cloudera-ps
+
+RUN yum install -y sudo
+RUN echo "cloudera-ps ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+WORKDIR /home/cloudera-ps
+RUN curl -L -s https://github.com/kward/shunit2/archive/v2.1.7.tar.gz | tar zx && \
+    chown -R cloudera-ps:cloudera-ps ./shunit2-2.1.7
+COPY --chown=cloudera-ps:cloudera-ps ./lib ./lib
+COPY --chown=cloudera-ps:cloudera-ps ./test ./test
+
+USER cloudera-ps
