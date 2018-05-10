@@ -27,5 +27,6 @@ RUN curl -L -s https://github.com/kward/shunit2/archive/v2.1.7.tar.gz | tar zx &
 COPY --chown=cloudera-ps:cloudera-ps ./*.sh ./
 COPY --chown=cloudera-ps:cloudera-ps ./lib ./lib
 COPY --chown=cloudera-ps:cloudera-ps ./test ./test
+COPY --chown=cloudera-ps:cloudera-ps ./vagrant ./vagrant
 
 USER cloudera-ps
