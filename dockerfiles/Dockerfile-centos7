@@ -6,8 +6,15 @@ RUN yum install -y sudo
 RUN echo "cloudera-ps ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 WORKDIR /home/cloudera-ps
+
+RUN yum install -y xz && \
+    curl -L -s https://storage.googleapis.com/shellcheck/shellcheck-stable.linux.x86_64.tar.xz | tar Jx && \
+    chown -R cloudera-ps:cloudera-ps ./shellcheck-stable
+
 RUN curl -L -s https://github.com/kward/shunit2/archive/v2.1.7.tar.gz | tar zx && \
     chown -R cloudera-ps:cloudera-ps ./shunit2-2.1.7
+
+COPY --chown=cloudera-ps:cloudera-ps ./*.sh ./
 COPY --chown=cloudera-ps:cloudera-ps ./lib ./lib
 COPY --chown=cloudera-ps:cloudera-ps ./test ./test
 

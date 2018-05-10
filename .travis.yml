@@ -30,14 +30,9 @@ before_script:
   - docker-compose up -d ${TARGET_DISTRIBUTION}
 
 script:
-  - shellcheck prereq-check-dev.sh
-  - shellcheck build.sh
-  - shellcheck lib/info.sh
-  - shellcheck lib/utils.sh
-  - shellcheck lib/checks.sh
-  - shellcheck lib/security/security-checks.sh
-  - shellcheck vagrant/v
-  - ./build.sh && ./prereq-check.sh
+  - docker-compose exec ${TARGET_DISTRIBUTION} ./test/run-shellcheck.sh
   - docker-compose exec ${TARGET_DISTRIBUTION} ./test/run-test.sh
+  - docker-compose exec ${TARGET_DISTRIBUTION} ./build.sh
+  - docker-compose exec ${TARGET_DISTRIBUTION} ./prereq-check.sh
 
 after_success:
