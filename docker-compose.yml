@@ -1,10 +1,13 @@
-version: "3"
+version: '2.4'
 
 services:
   centos6:
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile-centos6
+    hostname: test-centos6.example.org
+    networks:
+      - app_net
     environment:
       TZ: Asia/Tokyo
     command: tail -f /dev/null
@@ -13,6 +16,16 @@ services:
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile-centos7
+    hostname: test-centos7.example.org
+    networks:
+      - app_net
     environment:
       TZ: Asia/Tokyo
     command: tail -f /dev/null
+
+networks:
+  app_net:
+    driver: bridge
+    enable_ipv6: false
+    ipam:
+      driver: default

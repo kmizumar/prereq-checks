@@ -1,5 +1,9 @@
 FROM centos:6.9
 
+RUN echo 'ZONE="Asia/Tokyo"' > /etc/sysconfig/clock
+RUN rm -f /etc/localtime && \
+    ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+
 RUN useradd -s /bin/bash -u 4096 -U cloudera-ps
 
 RUN yum install -y sudo
