@@ -1,5 +1,5 @@
 function check_selinux() {
-    which getenforce 2>&/dev/null
+    which getenforce >/dev/null 2>&1
     if [ $? -eq 2 ]; then
         state "System: 'getenforce' not found, skipping SELinux check. Run 'sudo yum install libselinux-utils' to fix." 2
         return
