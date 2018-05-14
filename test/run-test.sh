@@ -3,4 +3,6 @@
 # http://redsymbol.net/articles/unofficial-bash-strict-mode/
 set -euo pipefail
 
-echo "Hello, World!"
+TESTDIR="$(cd "$(dirname "{BASH_SOURCE[0]}")" && pwd)"
+
+./check_selinux.sh
