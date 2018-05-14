@@ -42,7 +42,8 @@ function test_check_selinux() {
     if is_centos_rhel_7; then
         result=$(rmescseq "$(check_selinux)")
         assertEquals "getenforce isn't included in CentOS7 image" \
-                     " FAIL  System: 'getenforce' not found, skipping SELinux check. Run 'sudo yum install libselinux-utils' to fix."
+                     " FAIL  System: 'getenforce' not found, skipping SELinux check. Run 'sudo yum install libselinux-utils' to fix." \
+                     "${result}"
         sudo yum install libselinux-utils -y
     fi
     result=$(rmescseq "$(check_selinux)")
