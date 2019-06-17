@@ -786,12 +786,30 @@ function check_os() (
     }
 
     function check_selinux() {
-        # http://www.cloudera.com/content/www/en-us/documentation/enterprise/latest/topics/install_cdh_disable_selinux.html
-        local msg="System: SELinux should be disabled"
-        case $(getenforce) in
-            Disabled|Permissive) state "$msg" 0;;
-            *)                   state "$msg. Actual: $(getenforce)" 1;;
-        esac
+        if is_centos_rhel; then
+            # http://www.cloudera.com/content/www/en-us/documentation/enterprise/latest/topics/install_cdh_disable_selinux.html
+            local msg="System: SELinux should be disabled"
+            case $(getenforce) in
+                Disabled|Permissive) state "$msg" 0;;
+                *)                   state "$msg. Actual: $(getenforce)" 1;;
+            esac
+        fi
+
+        if is_ubuntu; then
+            local debs
+            debs=$(echo -e "$DPKG_L" | grep "^selinux-utils")
+            if [ "$debs" ]; then
+                 local msg="System: SELinux should be disabled"
+                 case $(getenforce) in
+                     Disabled|Permissive) state "$msg" 0;;
+                     *)                   state "$msg. Actual: $(getenforce)" 1;;
+                 esac
+            else
+                 # `selinux' package depends on `selinux-utils' so we can assume
+                 # SELinux is not available on this Ubuntu system
+                 state "System: SELinux should be disabled" 0
+            fi
+        fi
     }
 
     # Check that the system clock is synced by either ntpd or chronyd. Chronyd
@@ -806,28 +824,40 @@ function check_os() (
             fi
         }
 
-        if is_centos_rhel_7; then
-            get_service_state 'ntpd'
-            if [ "${SERVICE_STATE['running']}" = true ]; then
-                # If ntpd is running, then chrony shouldn't be
-                _check_service_is_running 'System' 'ntpd'
-                is_ntp_in_sync
-                _check_service_is_not_running 'System' 'chronyd'
+        if is_centos_rhel; then
+            if is_centos_rhel_7; then
+                get_service_state 'ntpd'
+                if [ "${SERVICE_STATE['running']}" = true ]; then
+                    # If ntpd is running, then chrony shouldn't be
+                    _check_service_is_running 'System' 'ntpd'
+                    is_ntp_in_sync
+                    _check_service_is_not_running 'System' 'chronyd'
+                else
+                    _check_service_is_running 'System' 'chronyd'
+                fi
             else
-                _check_service_is_running 'System' 'chronyd'
+                _check_service_is_running 'System' 'ntpd'
             fi
-        else
-            _check_service_is_running 'System' 'ntpd'
+        fi
+
+        if is_ubuntu; then
+            _check_service_is_running 'System' 'ntp'
         fi
     )
 
     function check_32bit_packages() {
-        local packages_32bit
-        packages_32bit=$(rpm -qa --queryformat '\t%{NAME} %{ARCH}\n' | grep 'i[6543]86' | cut -d' ' -f1)
-        if [ "$packages_32bit" ]; then
-            state "System: Found the following 32bit packages installed:\n$packages_32bit" 1
-        else
-            state "System: Only 64bit packages should be installed" 0
+        if is_centos_rhel; then
+            local packages_32bit
+            packages_32bit=$(rpm -qa --queryformat '\t%{NAME} %{ARCH}\n' | grep 'i[6543]86' | cut -d' ' -f1)
+            if [ "$packages_32bit" ]; then
+                state "System: Found the following 32bit packages installed:\n$packages_32bit" 1
+            else
+                state "System: Only 64bit packages should be installed" 0
+            fi
+        fi
+
+        if is_ubuntu; then
+            state "**** FIXME: check_32bit_packages is not implemented on Ubuntu ****" 2
         fi
     }
 
@@ -868,40 +898,46 @@ function check_os() (
 )
 
 function check_database() {
-    local VERSION_PATTERN='([0-9][0-9]*\.[0-9][0-9]*)\.[0-9][0-9]*'
-    local mysql_ver=''
-    local mysql_rpm=''
-    local mysql_ent
-    local mysql_com
+    if is_centos_rhel; then
+        local VERSION_PATTERN='([0-9][0-9]*\.[0-9][0-9]*)\.[0-9][0-9]*'
+        local mysql_ver=''
+        local mysql_rpm=''
+        local mysql_ent
+        local mysql_com
 
-    mysql_ent=$(rpm -q --queryformat='%{VERSION}' mysql-commercial-server)
-    # shellcheck disable=SC2181
-    if [[ $? -eq 0 ]]; then
-        mysql_rpm=$(rpm -q mysql-commercial-server)
-        [[ $mysql_ent =~ $VERSION_PATTERN ]]
-        mysql_ver=${BASH_REMATCH[1]}
+        mysql_ent=$(rpm -q --queryformat='%{VERSION}' mysql-commercial-server)
+        # shellcheck disable=SC2181
+        if [[ $? -eq 0 ]]; then
+            mysql_rpm=$(rpm -q mysql-commercial-server)
+             [[ $mysql_ent =~ $VERSION_PATTERN ]]
+            mysql_ver=${BASH_REMATCH[1]}
+        fi
+
+        mysql_com=$(rpm -q --queryformat='%{VERSION}' mysql-community-server)
+        # shellcheck disable=SC2181
+        if [[ $? -eq 0 ]]; then
+            mysql_rpm=$(rpm -q mysql-community-server)
+            [[ $mysql_com =~ $VERSION_PATTERN ]]
+            mysql_ver=${BASH_REMATCH[1]}
+        fi
+        if [[ -z "$mysql_ver" ]]; then
+            state "Database: MySQL server not installed, skipping version check" 2
+            return
+        fi
+
+        case "$mysql_ver" in
+            '5.1'|'5.5'|'5.6'|'5.7')
+                state "Database: Supported MySQL server installed. $mysql_rpm" 0
+                ;;
+            *)
+                state "Database: Unsupported MySQL server installed. $mysql_rpm" 1
+                ;;
+        esac
     fi
 
-    mysql_com=$(rpm -q --queryformat='%{VERSION}' mysql-community-server)
-    # shellcheck disable=SC2181
-    if [[ $? -eq 0 ]]; then
-        mysql_rpm=$(rpm -q mysql-community-server)
-        [[ $mysql_com =~ $VERSION_PATTERN ]]
-        mysql_ver=${BASH_REMATCH[1]}
+    if is_ubuntu; then
+        state "**** FIXME: check_database is not implemented on Ubuntu ****" 2
     fi
-    if [[ -z "$mysql_ver" ]]; then
-        state "Database: MySQL server not installed, skipping version check" 2
-        return
-    fi
-
-    case "$mysql_ver" in
-        '5.1'|'5.5'|'5.6'|'5.7')
-            state "Database: Supported MySQL server installed. $mysql_rpm" 0
-            ;;
-        *)
-            state "Database: Unsupported MySQL server installed. $mysql_rpm" 1
-            ;;
-    esac
 }
 
 function check_jdbc_connector() {
@@ -1118,6 +1154,10 @@ function print_os() {
             -e 's/CentOS Linux \([0-9]\).\([0-9]\).*/CentOS \1.\2/' \
             /etc/redhat-release )
     fi
+    if [ -f /etc/os-release ]; then
+        distro=$( grep ^PRETTY_NAME= /etc/os-release |\
+            sed -e 's/^.*="//;s/"$//' )
+    fi
     print_label "Distro" "$distro"
     print_label "Kernel" "$(uname -r)"
 }
@@ -1219,21 +1259,41 @@ function print_free_space() (
     free_space /var/log
 )
 
-function print_cloudera_rpms() {
-    local rpms
-    rpms=$(echo -e "$RPM_QA" | grep "^cloudera-")
-    if [ "$rpms" ]; then
-        echo "Cloudera RPMs:"
-        local pkg
-        local ver
-        for line in $rpms; do
-            pkg=$(echo "$line" | cut -d'-' -f1-3)
-            ver=$(echo "$line" | cut -d'-' -f4-)
-            pad
-            printf "%-24s  %s\n" "$pkg" "$ver"
-        done
-    else
-        echo "Cloudera RPMs: None installed"
+function print_cloudera_packages() {
+    if is_centos_rhel; then
+        local rpms
+        rpms=$(echo -e "$RPM_QA" | grep "^cloudera-")
+        if [ "$rpms" ]; then
+            echo "Cloudera RPMs:"
+            local pkg
+            local ver
+            for line in $rpms; do
+                pkg=$(echo "$line" | cut -d'-' -f1-3)
+                ver=$(echo "$line" | cut -d'-' -f4-)
+                pad
+                printf "%-24s  %s\n" "$pkg" "$ver"
+            done
+        else
+            echo "Cloudera RPMs: None installed"
+        fi
+    fi
+
+    if is_ubuntu; then
+        local debs
+        debs=$(echo -e "$DPKG_L" | grep "^cloudera-")
+        if [ "$debs" ]; then
+            echo "Cloudera .deb package(s):"
+            local pkg
+            local ver
+            for line in $debs; do
+                pkg=$(echo "$line" | cut -d',' -f1)
+                ver=$(echo "$line" | cut -d',' -f2)
+                pad
+                printf "%-24s  %s\n" "$pkg" "$ver"
+            done
+        else
+            echo "Cloudera .deb package(s): None installed"
+        fi
     fi
 }
 
@@ -1257,7 +1317,7 @@ function system_info() {
     print_cpu_and_ram
     print_disks
     print_free_space
-    print_cloudera_rpms
+    print_cloudera_packages
     print_time
     print_network
     print_internet
@@ -1354,8 +1414,24 @@ function _check_service_is_not_running() {
     fi
 }
 
+function is_centos_rhel {
+    if [ -f /etc/redhat-release ]; then
+        return 0;
+    else
+        return 1;
+    fi
+}
+
 function is_centos_rhel_7() {
     if [ -f /etc/redhat-release ] && grep -q " 7." /etc/redhat-release; then
+        return 0;
+    else
+        return 1;
+    fi
+}
+
+function is_ubuntu {
+    if [ -f /etc/os-release ] && grep -q "^ID=ubuntu$" /etc/os-release; then
         return 0;
     else
         return 1;
@@ -1380,7 +1456,7 @@ function get_service_state() {
 
     reset_service_state
 
-    if is_centos_rhel_7; then
+    if is_centos_rhel_7 || is_ubuntu; then
         local sub_state
         sub_state=$(systemctl show "$service_name" --type=service --property=SubState 2</dev/null | sed -e 's/^.*=//')
         case $sub_state in
@@ -1495,9 +1571,17 @@ elif [[ ${OPT_USER} ]]; then
 else
     echo "${BANNER}"
 
-    # Cache `rpm -qa` since it's slow and we call it several times
-    export RPM_QA
-    RPM_QA=$(rpm -qa | sort)
+    if is_centos_rhel; then
+        # Cache `rpm -qa` since it's slow and we call it several times
+        export RPM_QA
+        RPM_QA=$(rpm -qa | sort)
+    fi
+
+    if is_ubuntu; then
+        # Cache list of installed packages with `dpkg -l`
+        export DPKG_L
+        DPKG_L=$(dpkg -l | awk 'BEGIN { OFS="," } { print $2,$3 }')
+    fi
 
     system_info
     checks
